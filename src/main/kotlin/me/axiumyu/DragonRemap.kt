@@ -25,14 +25,18 @@ class DragonRemap : JavaPlugin(), Listener {
     @EventHandler
     fun onDamageEvent(ev: EntityDamageByEntityEvent) {
         if (ev.entity is EnderDragon) {
+            //屏蔽来自水晶的伤害
             if (ev.damager is EnderCrystal) ev.damage = 0.0
+
             val dragon = ev.entity as EnderDragon
             val maxHealth = dragon.getAttribute(GENERIC_MAX_HEALTH)!!.value
+            //限制单次伤害最大值
             if (ev.damage >= dragon.health * 0.08 && dragon.health >= maxHealth * 0.5) {
                 ev.damage = dragon.health * 0.08
             } else if (ev.damage >= dragon.health * 0.08 && dragon.health < maxHealth * 0.5) {
                 ev.damage = dragon.health * 0.08 + 2
             }
+            //将BossBar广播给所有玩家（单次）
             if (uuid == null) {
                 uuid = dragon.uniqueId
                 if (dragon.bossBar?.players?.size != server.onlinePlayers.size) {
@@ -42,8 +46,10 @@ class DragonRemap : JavaPlugin(), Listener {
                 }
                 return
             } else if (uuid == ev.entity.uniqueId) {
+//                生命值小于2开始触发（我也不知道为什么要这么做）
                 if ((ev.entity as EnderDragon).health < 2) {
                     val damager = ev.damager
+//                    timer里面不能改变dragon.phase = DYING，但是这似乎是产生效果的关键代码
                     /*val timer: Timer = Timer(true)
                     timer.schedule(object : TimerTask(){
                         var time = 0
@@ -68,6 +74,7 @@ class DragonRemap : JavaPlugin(), Listener {
                             }
                         }
                     },0,500)*/
+//                    我原本是这么写的，但是我想加一点过渡（x
                     /*timer.schedule(object : TimerTask(){
                         var time = 0
                         override fun run() {
